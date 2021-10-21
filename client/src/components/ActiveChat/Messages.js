@@ -9,15 +9,15 @@ import moment from "moment";
  * @param {Message} b
  * @returns {number}
  */
-
-const sortingMessagesByDate = (a, b) => moment(a.createdAt).valueOf() - moment(b.createdAt).valueOf();
+//Option 2 to resolve the sorting bug
+//const sortingMessagesByDate = (a, b) => moment(a.createdAt).valueOf() - moment(b.createdAt).valueOf();
 
 const Messages = (props) => {
   const { messages, otherUser, userId } = props;
   // sorting the messages by it's Epoch time milliseconds
   return (
     <Box>
-      {messages.sort(sortingMessagesByDate).map((message) => {
+      {messages.map((message) => {
         const time = moment(message.createdAt).format("h:mm");
         return message.senderId === userId ? <SenderBubble key={message.id} text={message.text} time={time} /> : <OtherUserBubble key={message.id} text={message.text} time={time} otherUser={otherUser} />;
       })}
