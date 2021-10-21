@@ -11,15 +11,19 @@ export const addMessageToStore = (state, payload) => {
     return [newConvo, ...state];
   }
   //the problem is the reducer function was returning the same state reference to fix this I used the spread operator to copy the object
-  return state.map((convo) => {
-    if (convo.id === message.conversationId) {
-      convo.messages.push(message);
-      convo.latestMessageText = message.text;
-      return { ...convo };
-    } else {
-      return { ...convo };
-    }
-  });
+  return state
+    .map((convo) => {
+      if (convo.id === message.conversationId) {
+        convo.messages.push(message);
+        convo.latestMessageText = message.text;
+        return { ...convo };
+      } else {
+        return { ...convo };
+      }
+    })
+    .sort(function (x, y) {
+      return x.id === message.conversationId ? -1 : y.id === message.conversationId ? 1 : 0;
+    });
 };
 //the problem is the reducer function was returning the same state reference to fix this I used the spread operator to copy the object
 export const addOnlineUserToStore = (state, id) => {
@@ -61,7 +65,7 @@ export const addSearchedUsersToStore = (state, users) => {
     // only create a fake convo if we don't already have a convo with this user
     if (!currentUsers[user.id]) {
       let fakeConvo = { otherUser: user, messages: [] };
-      newState.push(fakeConvo);
+      newState.unshift(fakeConvo);
     }
   });
 
