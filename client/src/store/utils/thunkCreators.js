@@ -3,33 +3,8 @@ import socket from "../../socket";
 import { gotConversations, addConversation, setNewMessage, setSearchedUsers } from "../conversations/conversationsActions";
 import { gotUser, setFetchingStatus } from "../user/userActions";
 
-//-----------------------------------------------------------------------------------------------------------------------------
-//local storage setItem & removeItem & getItem are not async operation I created additional helper functions to make them async
-
-/**
- * To set localstorage asynchronously
- * @param {string} data
- * @returns {Promise<void>}
- */
-const setLocalStorage = async (data) => {
-  if (data)
-    return Promise.resolve().then(() => {
-      localStorage.setItem("messenger-token", data);
-    });
-  return Promise.resolve().then(() => {
-    localStorage.removeItem("messenger-token");
-  });
-};
-/**
- * To get localstorage asynchronously
- * @returns {string}
- */
-const getLocalStorage = async () => {
-  return Promise.resolve().then(() => localStorage.getItem("messenger-token"));
-};
-//-----------------------------------------------------------------------------------------------------------------------------
 axios.interceptors.request.use(async function (config) {
-  const token = await getLocalStorage();
+  const token = await localStorage.getItem("messenger-token");
   config.headers["x-access-token"] = token;
 
   return config;
@@ -55,7 +30,7 @@ export const fetchUser = () => async (dispatch) => {
 export const register = (credentials) => async (dispatch) => {
   try {
     const { data } = await axios.post("/auth/register", credentials);
-    await setLocalStorage(data.token);
+    await localStorage.setItem("messenger-token", data.token);
     dispatch(gotUser(data));
     socket.emit("go-online", data.id);
   } catch (error) {
@@ -67,7 +42,7 @@ export const register = (credentials) => async (dispatch) => {
 export const login = (credentials) => async (dispatch) => {
   try {
     const { data } = await axios.post("/auth/login", credentials);
-    await setLocalStorage(data.token);
+    await localStorage.setItem("messenger-token", data.token);
     dispatch(gotUser(data));
     socket.emit("go-online", data.id);
   } catch (error) {
@@ -79,7 +54,7 @@ export const login = (credentials) => async (dispatch) => {
 export const logout = (id) => async (dispatch) => {
   try {
     await axios.delete("/auth/logout");
-    await setLocalStorage();
+    await localStorage.removeItem("messenger-token");
     dispatch(gotUser({}));
     socket.emit("logout", id);
   } catch (error) {
