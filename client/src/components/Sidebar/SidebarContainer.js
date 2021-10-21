@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { connect } from "react-redux";
 import { Sidebar } from "./index";
 import { searchUsers } from "../../store/utils/thunkCreators";
-import { clearSearchedUsers } from "../../store/conversations";
+import { clearSearchedUsers } from "../../store/conversations/conversationsActions";
 
 const SidebarContainer = (props) => {
   const { searchUsers, clearSearchedUsers } = props;

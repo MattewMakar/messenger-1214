@@ -1,15 +1,35 @@
 import axios from "axios";
 import socket from "../../socket";
-import {
-  gotConversations,
-  addConversation,
-  setNewMessage,
-  setSearchedUsers,
-} from "../conversations";
-import { gotUser, setFetchingStatus } from "../user";
+import { gotConversations, addConversation, setNewMessage, setSearchedUsers } from "../conversations/conversationsActions";
+import { gotUser, setFetchingStatus } from "../user/userActions";
 
+//-----------------------------------------------------------------------------------------------------------------------------
+//local storage setItem & removeItem & getItem are not async operation I created additional helper functions to make them async
+
+/**
+ * To set localstorage asynchronously
+ * @param {string} data
+ * @returns {Promise<void>}
+ */
+const setLocalStorage = async (data) => {
+  if (data)
+    return Promise.resolve().then(() => {
+      localStorage.setItem("messenger-token", data);
+    });
+  return Promise.resolve().then(() => {
+    localStorage.removeItem("messenger-token");
+  });
+};
+/**
+ * To get localstorage asynchronously
+ * @returns {string}
+ */
+const getLocalStorage = async () => {
+  return Promise.resolve().then(() => localStorage.getItem("messenger-token"));
+};
+//-----------------------------------------------------------------------------------------------------------------------------
 axios.interceptors.request.use(async function (config) {
-  const token = await localStorage.getItem("messenger-token");
+  const token = await getLocalStorage();
   config.headers["x-access-token"] = token;
 
   return config;
@@ -35,7 +55,7 @@ export const fetchUser = () => async (dispatch) => {
 export const register = (credentials) => async (dispatch) => {
   try {
     const { data } = await axios.post("/auth/register", credentials);
-    await localStorage.setItem("messenger-token", data.token);
+    await setLocalStorage(data.token);
     dispatch(gotUser(data));
     socket.emit("go-online", data.id);
   } catch (error) {
@@ -47,7 +67,7 @@ export const register = (credentials) => async (dispatch) => {
 export const login = (credentials) => async (dispatch) => {
   try {
     const { data } = await axios.post("/auth/login", credentials);
-    await localStorage.setItem("messenger-token", data.token);
+    await setLocalStorage(data.token);
     dispatch(gotUser(data));
     socket.emit("go-online", data.id);
   } catch (error) {
@@ -59,7 +79,7 @@ export const login = (credentials) => async (dispatch) => {
 export const logout = (id) => async (dispatch) => {
   try {
     await axios.delete("/auth/logout");
-    await localStorage.removeItem("messenger-token");
+    await setLocalStorage();
     dispatch(gotUser({}));
     socket.emit("logout", id);
   } catch (error) {
@@ -93,9 +113,11 @@ const sendMessage = (data, body) => {
 
 // message format to send: {recipientId, text, conversationId}
 // conversationId will be set to null if its a brand new conversation
-export const postMessage = (body) => (dispatch) => {
+// the problem here was that saveMessage function is returning a promise not the data directly and the postMessage function should be asynchronous
+
+export const postMessage = (body) => async (dispatch) => {
   try {
-    const data = saveMessage(body);
+    const data = await saveMessage(body);
 
     if (!body.conversationId) {
       dispatch(addConversation(body.recipientId, data.message));

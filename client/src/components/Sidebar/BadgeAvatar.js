@@ -29,11 +29,7 @@ const UserAvatar = (props) => {
 
   return (
     <Box className={sidebar ? classes.sidebar : ""}>
-      <Badge
-        classes={{ badge: `${classes.badge} ${online && classes.online}` }}
-        variant="dot"
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-        overlap="circle">
+      <Badge classes={{ badge: `${classes.badge} ${online && classes.online}` }} variant="dot" anchorOrigin={{ horizontal: "right", vertical: "bottom" }} overlap="circular">
         <Avatar alt={username} src={photoUrl} className={classes.profilePic}></Avatar>
       </Badge>
     </Box>

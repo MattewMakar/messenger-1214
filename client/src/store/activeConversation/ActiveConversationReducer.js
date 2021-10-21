@@ -1,11 +1,4 @@
-const SET_ACTIVE_CHAT = "SET_ACTIVE_CHAT";
-
-export const setActiveChat = (username) => {
-  return {
-    type: SET_ACTIVE_CHAT,
-    username
-  };
-};
+import { SET_ACTIVE_CHAT } from "./activeConversationTypes";
 
 const reducer = (state = "", action) => {
   switch (action.type) {
