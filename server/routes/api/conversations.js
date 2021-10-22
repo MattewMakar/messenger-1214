@@ -47,6 +47,9 @@ router.get("/", async (req, res, next) => {
       ],
     });
 
+    conversations.sort((a, b) => {
+      return Date.parse(b.messages[b.messages.length - 1].createdAt) - Date.parse(a.messages[a.messages.length - 1].createdAt);
+    });
     for (let i = 0; i < conversations.length; i++) {
       const convo = conversations[i];
       const convoJSON = convo.toJSON();
