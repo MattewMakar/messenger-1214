@@ -1,12 +1,7 @@
 import axios from "axios";
 import socket from "../../socket";
-import {
-  gotConversations,
-  addConversation,
-  setNewMessage,
-  setSearchedUsers,
-} from "../conversations";
-import { gotUser, setFetchingStatus } from "../user";
+import { gotConversations, addConversation, setNewMessage, setSearchedUsers } from "../conversations/conversationsActions";
+import { gotUser, setFetchingStatus } from "../user/userActions";
 
 axios.interceptors.request.use(async function (config) {
   const token = await localStorage.getItem("messenger-token");
@@ -93,9 +88,11 @@ const sendMessage = (data, body) => {
 
 // message format to send: {recipientId, text, conversationId}
 // conversationId will be set to null if its a brand new conversation
-export const postMessage = (body) => (dispatch) => {
+// the problem here was that saveMessage function is returning a promise not the data directly and the postMessage function should be asynchronous
+
+export const postMessage = (body) => async (dispatch) => {
   try {
-    const data = saveMessage(body);
+    const data = await saveMessage(body);
 
     if (!body.conversationId) {
       dispatch(addConversation(body.recipientId, data.message));

@@ -4,7 +4,7 @@ import {
   setNewMessage,
   removeOfflineUser,
   addOnlineUser,
-} from "./store/conversations";
+} from "./store/conversations/conversationsActions";
 
 const socket = io(window.location.origin);
 
