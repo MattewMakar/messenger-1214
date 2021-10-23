@@ -1,5 +1,5 @@
 export const addMessageToStore = (state, payload) => {
-  const { message, sender } = payload;
+  const { message, sender, isActive } = payload;
   // if sender isn't null, that means the message needs to be put in a brand new convo
   if (sender !== null) {
     const newConvo = {
@@ -7,20 +7,31 @@ export const addMessageToStore = (state, payload) => {
       otherUser: sender,
       messages: [message],
     };
+    //if it's a new conversation the counter is always starting from 1
+    newConvo.unreadCount = 1;
     newConvo.latestMessageText = message.text;
     return [newConvo, ...state];
   }
   return state
     .map((convo) => {
-      if (convo.id === message.conversationId) {
-        const convoCopy = { ...convo };
-        convoCopy.messages.push(message);
-        convoCopy.latestMessageText = message.text;
-        return convoCopy;
-      } else {
-        return convo ;
+    if (convo.id === message.conversationId) {
+      const convoCopy = { ...convo };
+      //if the sender is the conversation other user but the conversation is not active increase the read counter 
+      if (message.senderId === convoCopy.otherUser.id && !isActive) {
+        convoCopy.unreadCount++;
       }
-    })
+      //if the sender is the other user nd the conversation is active set the last seen to the last message sent
+      if (message.senderId === convoCopy.otherUser.id && isActive) {
+        convoCopy.lastSeenMessageId = message.id;
+      }
+
+      convoCopy.messages.push(message);
+      convoCopy.latestMessageText = message.text;
+      return convoCopy;
+    } else {
+      return convo ;
+    }
+  })
 };
 
 export const addOnlineUserToStore = (state, id) => {
@@ -78,5 +89,39 @@ export const addNewConvoToStore = (state, recipientId, message) => {
     } else {
       return convo;
     }
+  });
+};
+//once a conversation is selected update all the messages read status and set the counter to 0
+export const addReadMessagesToStore = (state, conversation) => {
+  return state.map((convo) => {
+    if (convo.id === conversation.id) {
+      const convoCopy = { ...convo };
+      convoCopy.unreadCount = 0;
+      convoCopy.messages = convoCopy.messages.map((message) => {
+        const read = !message.read && message.senderId === conversation.otherUserId
+          return { ...message, read }
+      });
+      return convoCopy;
+    } else {
+      return convo;
+    }
+  });
+};
+//keeps track of the active conversation by adding an active attribute to each conversation
+export const setActiveConversation = (state, username) => {
+  return state.map((convo) => {
+    const convoCopy = { ...convo };
+    convoCopy.active = convo.otherUser.username === username;
+    return convoCopy;
+  });
+};
+//setting the last seen once the socket emits the read status to the last message from the conversation
+export const setLastSeen = (state, conversation) => {
+  return state.map((convo) => {
+    if (convo.id === conversation.id) {
+      const convoCopy = { ...convo };
+      convoCopy.lastSeenMessageId = convoCopy.messages[convoCopy.messages.length - 1].id;
+      return convoCopy;
+    } else return convo;
   });
 };

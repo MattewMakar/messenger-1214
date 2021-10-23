@@ -6,13 +6,13 @@ import moment from "moment";
 
 
 const Messages = (props) => {
-  const { messages, otherUser, userId } = props;
-  // sorting the messages by it's Epoch time milliseconds
+  const { messages, otherUser, userId, lastSeenMessageId } = props;
+
   return (
     <Box>
       {messages.map((message) => {
         const time = moment(message.createdAt).format("h:mm");
-        return message.senderId === userId ? <SenderBubble key={message.id} text={message.text} time={time} /> : <OtherUserBubble key={message.id} text={message.text} time={time} otherUser={otherUser} />;
+        return message.senderId === userId ? <SenderBubble key={message.id} otherUser={otherUser} text={message.text} time={time} showLastSeen={message.id === lastSeenMessageId} /> : <OtherUserBubble key={message.id} text={message.text} time={time} otherUser={otherUser} />;
       })}
     </Box>
   );
