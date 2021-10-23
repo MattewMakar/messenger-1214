@@ -118,7 +118,7 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
 // update read status in the backend
 export const updateMessagesReadStatus = (conversation) => async (dispatch) => {
   try {
-    await axios.put(`/api/conversations/${conversation.id}`);
+    await axios.put(`/api/conversations/readMessages/${conversation.id}`);
     dispatch(addReadMessages(conversation));
     socket.emit("read-message" , conversation)
   } catch (error) {

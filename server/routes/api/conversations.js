@@ -119,7 +119,7 @@ router.get("/", async (req, res, next) => {
 });
 
 // Route form updating all read status for all messages in the passed conversation
-router.put("/:conversationId", async (req, res, next) => {
+router.put("/readMessages/:conversationId", async (req, res, next) => {
   try {
     if (!req.user) {
       return res.sendStatus(401);
