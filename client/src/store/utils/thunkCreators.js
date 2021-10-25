@@ -118,6 +118,9 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
 // update read status in the backend
 export const updateMessagesReadStatus = (conversation) => async (dispatch) => {
   try {
+    const everyMessageRead = conversation.messages && conversation.messages.every((m) => m.senderId !== conversation.otherUser.id || (m.senderId === conversation.otherUser.id && !!m.read));
+		const shouldUpdate = conversation.id && conversation.otherUser && !everyMessageRead;
+    if (!shouldUpdate) return;
     await axios.put(`/api/conversations/readMessages/${conversation.id}`);
     dispatch(addReadMessages(conversation));
     socket.emit("read-message" , conversation)

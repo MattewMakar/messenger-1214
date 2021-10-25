@@ -28,9 +28,6 @@ const Chat = (props) => {
   const handleClick = async (conversation) => {
     await props.setActiveChat(conversation.otherUser.username);
     //if every message in the conversation was read no need to dispatch the update
-    const everyMessageRead = conversation.messages && conversation.messages.every((m) => m.senderId !== conversation.otherUser.id || (m.senderId === conversation.otherUser.id && !!m.read));
-    const shouldUpdate = conversation.id && conversation.otherUser && !everyMessageRead;
-    if (shouldUpdate)
       await props.updateMessagesReadStatus(conversation);
   };
 

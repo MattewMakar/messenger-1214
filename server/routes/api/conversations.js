@@ -126,7 +126,10 @@ router.put("/readMessages/:conversationId", async (req, res, next) => {
     }
     const userId = req.user.id;
     const { conversationId } = req.params;
-
+    const conversation = await Conversation.findByPk(conversationId);
+    if (![conversation.user1Id, conversation.user2Id].includes(userId)) {
+			return res.sendStatus(403);
+		}
     await Message.update(
       { read: true },
       {
