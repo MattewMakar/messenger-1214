@@ -5,8 +5,8 @@ import { REMOVE_OFFLINE_USER } from './conversationsTypes';
 import { SET_SEARCHED_USERS } from './conversationsTypes';
 import { CLEAR_SEARCHED_USERS } from './conversationsTypes';
 import { ADD_CONVERSATION } from './conversationsTypes';
-
-
+import { READ_MESSAGES } from './conversationsTypes';
+import { SET_LAST_SEEN } from "./conversationsTypes";
 
 export const gotConversations = (conversations) => {
   return {
@@ -15,10 +15,10 @@ export const gotConversations = (conversations) => {
   };
 };
 
-export const setNewMessage = (message, sender) => {
+export const setNewMessage = (message, sender , isActive = false) => {
   return {
     type: SET_MESSAGE,
-    payload: { message, sender: sender || null },
+    payload: { message, sender: sender || null, isActive },
   };
 };
 
@@ -54,5 +54,19 @@ export const addConversation = (recipientId, newMessage) => {
   return {
     type: ADD_CONVERSATION,
     payload: { recipientId, newMessage },
+  };
+};
+
+export const addReadMessages = (conversation) => {
+  return {
+    type: READ_MESSAGES,
+    payload: conversation
+  };
+}
+
+export const updateLastSeen = (conversation) => {
+  return {
+    type: SET_LAST_SEEN,
+    payload: conversation,
   };
 };

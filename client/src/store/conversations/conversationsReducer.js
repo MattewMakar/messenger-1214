@@ -5,14 +5,19 @@ import { REMOVE_OFFLINE_USER } from "./conversationsTypes";
 import { SET_SEARCHED_USERS } from "./conversationsTypes";
 import { CLEAR_SEARCHED_USERS } from "./conversationsTypes";
 import { ADD_CONVERSATION } from "./conversationsTypes";
-
+import { READ_MESSAGES } from "./conversationsTypes";
+import { SET_ACTIVE_CHAT } from "./conversationsTypes";
+import { SET_LAST_SEEN } from "./conversationsTypes";
 
 import {
   addNewConvoToStore,
   addOnlineUserToStore,
   addSearchedUsersToStore,
   removeOfflineUserFromStore,
-  addMessageToStore
+  addMessageToStore,
+  addReadMessagesToStore,
+  setActiveConversation,
+  setLastSeen
 } from "../utils/reducerFunctions";
 
 
@@ -34,6 +39,12 @@ const reducer = (state = [], action) => {
       return state.filter((convo) => convo.id);
     case ADD_CONVERSATION:
       return addNewConvoToStore(state, action.payload.recipientId, action.payload.newMessage);
+    case READ_MESSAGES:
+      return addReadMessagesToStore(state, action.payload);
+    case SET_ACTIVE_CHAT:
+      return setActiveConversation(state, action.username);
+    case SET_LAST_SEEN:
+      return setLastSeen(state, action.payload);
     default:
       return state;
   }

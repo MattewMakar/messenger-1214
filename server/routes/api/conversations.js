@@ -51,31 +51,98 @@ router.get("/", async (req, res, next) => {
       return Date.parse(b.messages[b.messages.length - 1].createdAt) - Date.parse(a.messages[a.messages.length - 1].createdAt);
     });
     for (let i = 0; i < conversations.length; i++) {
-      const convo = conversations[i];
-      const convoJSON = convo.toJSON();
+			const convo = conversations[i];
+			const convoJSON = convo.toJSON();
 
-      // set a property "otherUser" so that frontend will have easier access
-      if (convoJSON.user1) {
-        convoJSON.otherUser = convoJSON.user1;
-        delete convoJSON.user1;
-      } else if (convoJSON.user2) {
-        convoJSON.otherUser = convoJSON.user2;
-        delete convoJSON.user2;
-      }
+			// set a property "otherUser" so that frontend will have easier access
+			if (convoJSON.user1) {
+				convoJSON.otherUser = convoJSON.user1;
+				delete convoJSON.user1;
+			} else if (convoJSON.user2) {
+				convoJSON.otherUser = convoJSON.user2;
+				delete convoJSON.user2;
+			}
 
-      // set property for online status of the other user
-      if (onlineUsers.includes(convoJSON.otherUser.id)) {
-        convoJSON.otherUser.online = true;
-      } else {
-        convoJSON.otherUser.online = false;
-      }
-
-      // set properties for notification count and latest message preview
-      convoJSON.latestMessageText = convoJSON.messages[convoJSON.messages.length-1].text;
-      conversations[i] = convoJSON;
-    }
+			// set property for online status of the other user
+			if (onlineUsers.includes(convoJSON.otherUser.id)) {
+				convoJSON.otherUser.online = true;
+			} else {
+				convoJSON.otherUser.online = false;
+			}
+			//setting unread count in each conversation
+			convoJSON.unreadCount = await Message.count({
+				where: {
+					[Op.and]: [
+						{
+							conversationId: convoJSON.id,
+						},
+						{
+							read: false,
+						},
+						{
+							[Op.not]: {
+								senderId: userId,
+							},
+						},
+					],
+				},
+			});
+			//setting last seen message for each conversation
+			const lastSeenMessage = await Message.findOne({
+				attributes: ["id"],
+				where: {
+					[Op.and]: [
+						{
+							conversationId: convoJSON.id,
+						},
+						{
+							read: true,
+						},
+						{
+							senderId: userId,
+						},
+					],
+				},
+				order: [["id", "DESC"]],
+			});
+			// set properties for notification count and latest message preview
+			convoJSON.latestMessageText = convoJSON.messages[convoJSON.messages.length - 1].text;
+			//if no messaged was read from the other user the last seen is null
+			convoJSON.lastSeenMessageId = lastSeenMessage ? lastSeenMessage.id : null;
+			conversations[i] = convoJSON;
+		}
 
     res.json(conversations);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Route form updating all read status for all messages in the passed conversation
+router.put("/readMessages/:conversationId", async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+    const userId = req.user.id;
+    const { conversationId } = req.params;
+    const conversation = await Conversation.findByPk(conversationId);
+    if (![conversation.user1Id, conversation.user2Id].includes(userId)) {
+			return res.sendStatus(403);
+		}
+    await Message.update(
+      { read: true },
+      {
+        where: {
+          conversationId: conversationId,
+          senderId: {
+            [Op.not]: userId,
+          },
+        },
+      }
+    );
+
+    res.sendStatus(204);
   } catch (error) {
     next(error);
   }

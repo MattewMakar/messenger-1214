@@ -1,6 +1,6 @@
 import axios from "axios";
 import socket from "../../socket";
-import { gotConversations, addConversation, setNewMessage, setSearchedUsers } from "../conversations/conversationsActions";
+import { gotConversations, addConversation, setNewMessage, setSearchedUsers, addReadMessages } from "../conversations/conversationsActions";
 import { gotUser, setFetchingStatus } from "../user/userActions";
 
 axios.interceptors.request.use(async function (config) {
@@ -110,6 +110,20 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
   try {
     const { data } = await axios.get(`/api/users/${searchTerm}`);
     dispatch(setSearchedUsers(data));
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+// update read status in the backend
+export const updateMessagesReadStatus = (conversation) => async (dispatch) => {
+  try {
+    const everyMessageRead = conversation.messages && conversation.messages.every((m) => m.senderId !== conversation.otherUser.id || (m.senderId === conversation.otherUser.id && !!m.read));
+		const shouldUpdate = conversation.id && conversation.otherUser && !everyMessageRead;
+    if (!shouldUpdate) return;
+    await axios.put(`/api/conversations/readMessages/${conversation.id}`);
+    dispatch(addReadMessages(conversation));
+    socket.emit("read-message" , conversation)
   } catch (error) {
     console.error(error);
   }
